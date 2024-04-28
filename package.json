@@ -2,11 +2,11 @@
 	"name": "dzajdrop-server",
 	"version": "1.0.0",
 	"description": "Dzjadrop main server",
-	"main": "src/app.ts",
+	"main": "src/server.ts",
 	"scripts": {
-		"start": "ts-node src/app.ts",
-		"start:prod": "NODE_ENV=production ts-node src/app.ts",
-		"dev": "nodemon src/app.ts"
+		"start": "ts-node src/server.ts",
+		"start:prod": "NODE_ENV=production ts-node src/server.ts",
+		"dev": "nodemon src/server.ts"
 	},
 	"dependencies": {
 		"dotenv": "^16.4.5",
