@@ -81,6 +81,8 @@ export const uploadController = (req: Request, res: Response) => {
 				fs.rmdirSync(`./temp/${tempId}`);
 			}
 
+			//TODO: Save to database
+
 			console.log("File upload complete");
 		});
 

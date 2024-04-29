@@ -1,4 +1,4 @@
-import { Attachment, Client, TextChannel } from "discord.js";
+import { type Client, TextChannel } from "discord.js";
 import { client } from "../../bot/app";
 import { config } from "../config";
 
@@ -14,10 +14,10 @@ class BotManager {
 		for (let i = 0; i < this.bots.length; i++) {
 			if (this.occupiedSlots[i] + requiredSlots <= config.botSlots) {
 				this.occupiedSlots[i] += requiredSlots;
-				return this.bots[i];
+				return { bot: this.bots[i], id: i };
 			}
 		}
-		return null;
+		return { bot: null, id: -1 };
 	}
 
 	constructor() {
@@ -49,7 +49,7 @@ class BotManager {
 	// Method to send attachments that have less than size defined in config. (25MB is default)
 	public async sendSmallAttachment(filePath: string, fileName: string) {
 		// TODO: Implement attachment type.
-		const bot = this.getAvailableBot(1);
+		const { bot, id } = this.getAvailableBot(1);
 		const channel = this.destinationChannel;
 
 		if (!bot) {
@@ -62,6 +62,9 @@ class BotManager {
 		}
 
 		const response = await channel.send({ content: fileName, files: [filePath] });
+
+		this.occupiedSlots[id] -= 1;
+
 		return response;
 	}
 }
