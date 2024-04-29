@@ -1,4 +1,4 @@
-import { Client, TextChannel } from "discord.js";
+import { Attachment, Client, TextChannel } from "discord.js";
 import { client } from "../../bot/app";
 import { config } from "../config";
 
@@ -47,20 +47,22 @@ class BotManager {
 	}
 
 	// Method to send attachments that have less than size defined in config. (25MB is default)
-	public async sendSmallAttachment() {
+	public async sendSmallAttachment(filePath: string, fileName: string) {
 		// TODO: Implement attachment type.
 		const bot = this.getAvailableBot(1);
-		if (!bot) {
-			//TODO: Handle the case when no bot is available.
-		}
-	}
+		const channel = this.destinationChannel;
 
-	// Method to send attachments that have more than size defined in config. (25MB is default)
-	public async sendLargeAttachment() {
-		const bot = this.getAvailableBot();
 		if (!bot) {
 			//TODO: Handle the case when no bot is available.
+			return;
 		}
+		if (!channel) {
+			//TODO: Handle the case when no chat is available.
+			return;
+		}
+
+		const response = await channel.send({ content: fileName, files: [filePath] });
+		return response;
 	}
 }
 

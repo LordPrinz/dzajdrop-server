@@ -2,3 +2,4 @@
 package-lock.json
 .env
 /src/config.ts
+/temp
