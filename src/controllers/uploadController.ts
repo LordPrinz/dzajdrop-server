@@ -9,6 +9,8 @@ export const uploadController = (req: Request, res: Response) => {
 
 	req.pipe(busboy);
 
+	botManager.sendSmallAttachment();
+
 	busboy.on(
 		"file",
 		(fieldname: any, file: any, filename: any, encoding: any, mimetype: any) => {
