@@ -1,8 +1,9 @@
 import { Router } from "express";
-import { uploadController, uploadFile } from "../controllers/uploadController";
+import { uploadController } from "../controllers/uploadController";
+import busboy from "connect-busboy";
 
 const router = Router();
 
-router.route("/").post(uploadFile, uploadController);
+router.route("/").post(busboy(), uploadController);
 
 export default router;
