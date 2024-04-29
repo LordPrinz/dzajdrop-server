@@ -1,5 +1,6 @@
 import { type Request, type Response } from "express";
 import { config } from "../config";
+import { botManager } from "../lib/BotManager";
 
 export const uploadController = (req: Request, res: Response) => {
 	const { busboy } = req;
@@ -12,7 +13,7 @@ export const uploadController = (req: Request, res: Response) => {
 		"file",
 		(fieldname: any, file: any, filename: any, encoding: any, mimetype: any) => {
 			file.on("data", (data: any) => {
-				console.log(`File [${fieldname}] got ${data.length} bytes`);
+				// console.log(`File [${fieldname}] got ${data.length} bytes`);
 			});
 		}
 	);
