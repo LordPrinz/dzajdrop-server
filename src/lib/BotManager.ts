@@ -98,6 +98,37 @@ class BotManager {
 
 		this.occupiedSlots[id] -= 1;
 	}
+
+	public async getAttachment(messageId: string) {
+		const { bot, id } = this.getAvailableBot(0);
+		const channel = this.destinationChannel;
+
+		if (!bot) {
+			return;
+		}
+
+		if (!channel) {
+			return;
+		}
+
+		const message = await channel.messages.fetch(messageId);
+
+		if (!message) {
+			return;
+		}
+
+		const attachment = message.attachments.first();
+
+		if (!attachment) {
+			return;
+		}
+
+		const url = attachment.url;
+
+		this.occupiedSlots[id] -= 1;
+
+		return url;
+	}
 }
 
 export const botManager = new BotManager();
