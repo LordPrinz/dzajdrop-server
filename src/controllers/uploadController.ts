@@ -3,6 +3,7 @@ import { config } from "../config";
 import fs from "fs";
 import { botManager } from "../lib/BotManager";
 import { type FileInfo } from "../types";
+import { database } from "../lib/Database";
 
 const messageIds: string[] = [];
 
@@ -117,8 +118,13 @@ export const uploadController = (req: Request, res: Response) => {
 
 			// Save to mongo database
 
-			totalBytesReceived = 0;
+			const response = await database.saveFile({
+				fileName,
+				size: originalFileSize,
+				messageIds,
+			});
 
+			totalBytesReceived = 0;
 			messageIds.length = 0;
 
 			res.write(

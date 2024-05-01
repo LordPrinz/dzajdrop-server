@@ -23,7 +23,7 @@ const fileSchema = new mongoose.Schema(
 );
 
 fileSchema.set("toJSON", {
-	transform: function (doc, ret) {
+	transform: function (_, ret) {
 		ret.id = ret._id;
 
 		delete ret._id;
@@ -31,7 +31,12 @@ fileSchema.set("toJSON", {
 	},
 });
 
-fileSchema.set("toObject", { virtuals: true });
+fileSchema.set("toObject", {
+	virtuals: true,
+	transform: (_, ret) => {
+		delete ret._id;
+	},
+});
 
 let FileModel: mongoose.Model<IFile>;
 

@@ -7,7 +7,7 @@ class Database {
 		fileName,
 		size,
 		messageIds,
-	}: FileInfo & { messageIds: string[] }) {
+	}: Omit<FileInfo, "extension"> & { messageIds: string[] }) {
 		const uniqueId = await generateUniqueID();
 		const secretKey = crypto.randomUUID();
 
