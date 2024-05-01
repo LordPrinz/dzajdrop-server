@@ -47,7 +47,7 @@ class BotManager {
 	}
 
 	// Method to send attachments that have less than size defined in config. (25MB is default)
-	public async sendSmallAttachment(filePath: string, fileName: string) {
+	public async sendAttachment(filePath: string, fileName: string) {
 		// TODO: Implement attachment type.
 		const { bot, id } = this.getAvailableBot(1);
 		const channel = this.destinationChannel;

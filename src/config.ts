@@ -1,7 +1,5 @@
-import { channel } from "process";
-
 export const config = {
-	uploadBytesLimit: 24 * 1024 * 1024,
+	uploadBytesLimit: Math.floor(24.84 * 1024 * 1024),
 	bots: [
 		"MTE4MzgyMTgyOTIxNTg5MTU0Nw.GorO3g.I8jraFaszZFdFYAttJJ272yAJeI04cqBnsvHyc",
 	],
