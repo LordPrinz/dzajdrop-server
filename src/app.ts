@@ -1,12 +1,26 @@
 import express, { json } from "express";
+import helmet from "helmet";
+
 import uploadRouter from "./routes/uploadRouter";
 import filesRouter from "./routes/filesRouter";
+import mongoSanitize from "express-mongo-sanitize";
+import rateLimit from "express-rate-limit";
 
 const app = express();
 
-//TODO: add security
+const limiter = rateLimit({
+	max: 100,
+	windowMs: 1000 * 60,
+	message: "Too many requests from this IP, please try again in a minute.",
+});
+
+app.use("/api", limiter);
+
+app.use(helmet());
 
 app.use(json());
+
+app.use(mongoSanitize());
 
 app.use("/api/v1/upload", uploadRouter);
 app.use("/api/v1/files", filesRouter);

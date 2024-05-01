@@ -117,6 +117,8 @@ export const uploadController = (req: Request, res: Response) => {
 
 			// Save to mongo database
 
+			totalBytesReceived = 0;
+
 			messageIds.length = 0;
 
 			res.write(
@@ -134,7 +136,15 @@ export const uploadController = (req: Request, res: Response) => {
 	});
 
 	req.on("close", async () => {
-		totalBytesReceived = 0;
+		const progress = Math.ceil(
+			((fileIndex * uploadBytesLimit + totalBytesReceived) / originalFileSize) *
+				100
+		);
+
+		if (progress === 100) {
+			return;
+		}
+
 		if (fileStream) {
 			fileStream.close();
 
@@ -159,9 +169,10 @@ export const uploadController = (req: Request, res: Response) => {
 			}
 		}
 
+		totalBytesReceived = 0;
 		messageIds.length = 0;
 
-		busboy.removeAllListeners(); // Remove all event listeners to prevent memory leaks
+		busboy.removeAllListeners();
 	});
 	busboy.on("error", (err) => {
 		res.write(
