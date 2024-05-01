@@ -64,7 +64,7 @@ class BotManager {
 		const content =
 			formatToEmbed(fileInfo.fileName) +
 			formatToEmbed(fileInfo.extension) +
-			formatToEmbed(fileInfo.size);
+			formatToEmbed(new Date().getTime());
 
 		const response = await channel.send({
 			content,

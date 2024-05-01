@@ -1,5 +1,6 @@
 import { config } from "dotenv";
 import app from "./app";
+import mongoose from "mongoose";
 
 process.on("uncaughtException", (err) => {
 	console.log("UNCAUGHT EXCEPTION! Shutting down...");
@@ -8,6 +9,23 @@ process.on("uncaughtException", (err) => {
 });
 
 config();
+
+const DB = process.env.DATABASE?.replace(
+	"<PASSWORD>",
+	process.env.DATABASE_PASSWORD || ""
+);
+
+if (!DB) {
+	console.log("No database link!");
+	process.exit(1);
+}
+
+mongoose
+	.connect(DB)
+	.then(() => {
+		console.log("DB connection successful!");
+	})
+	.catch((err) => console.log(err));
 
 const port = process.env.PORT || 3000;
 
