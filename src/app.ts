@@ -5,8 +5,16 @@ import uploadRouter from "./routes/uploadRouter";
 import filesRouter from "./routes/filesRouter";
 import mongoSanitize from "express-mongo-sanitize";
 import rateLimit from "express-rate-limit";
+import cors from "cors";
 
 const app = express();
+
+app.enable("trust proxy");
+
+app.use(cors());
+app.options("*", cors());
+
+app.use(helmet());
 
 const limiter = rateLimit({
 	max: 100,
@@ -16,11 +24,9 @@ const limiter = rateLimit({
 
 app.use("/api", limiter);
 
-app.use(helmet());
+app.use(mongoSanitize());
 
 app.use(json());
-
-app.use(mongoSanitize());
 
 app.use("/api/v1/upload", uploadRouter);
 app.use("/api/v1/files", filesRouter);

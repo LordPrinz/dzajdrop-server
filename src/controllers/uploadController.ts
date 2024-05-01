@@ -40,6 +40,10 @@ export const uploadController = async (req: Request, res: Response) => {
 
 	const { busboy } = req;
 
+	if (!busboy) {
+		return res.status(400).send("No file provided");
+	}
+
 	const originalFileSize = parseInt(req.headers["content-length"] || "0", 10);
 
 	res.setHeader("Content-Type", "text/event-stream");
@@ -58,9 +62,8 @@ export const uploadController = async (req: Request, res: Response) => {
 		res.write(`data: ${JSON.stringify({ progress })}\n\n`);
 	};
 
-	sendProgressResponse(0);
-
 	busboy.on("file", (_, file, fileInfo) => {
+		sendProgressResponse(0);
 		const fileName = fileInfo.filename;
 		const fileExtension = fileName.split(".").pop() || "";
 		totalBytesReceived = 0;
