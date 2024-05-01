@@ -4,6 +4,7 @@ import fs from "fs";
 import { botManager } from "../lib/BotManager";
 import { type FileInfo } from "../types";
 import { database } from "../lib/Database";
+import { getFreeSpace } from "../utils";
 
 const messageIds: string[] = [];
 
@@ -28,10 +29,16 @@ const uploadToDiscordHandler = async (path: string, fileInfo: FileInfo) => {
 	fs.unlinkSync(path);
 };
 
-export const uploadController = (req: Request, res: Response) => {
-	const { busboy } = req;
-
+export const uploadController = async (req: Request, res: Response) => {
 	const { uploadBytesLimit } = config;
+
+	const freeSpace = await getFreeSpace();
+
+	if (freeSpace - uploadBytesLimit <= uploadBytesLimit) {
+		return res.status(413).send("Insufficient storage space");
+	}
+
+	const { busboy } = req;
 
 	const originalFileSize = parseInt(req.headers["content-length"] || "0", 10);
 
@@ -123,6 +130,20 @@ export const uploadController = (req: Request, res: Response) => {
 				size: originalFileSize,
 				messageIds,
 			});
+
+			if (!response) {
+				res.write(
+					"data: " +
+						JSON.stringify({
+							status: "fail",
+							message: "Something went wrong!",
+							progress: 0,
+						}) +
+						"\n\n"
+				);
+
+				return res.end();
+			}
 
 			totalBytesReceived = 0;
 			messageIds.length = 0;
