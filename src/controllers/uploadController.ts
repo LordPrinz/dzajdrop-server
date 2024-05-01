@@ -2,6 +2,7 @@ import { type Request, type Response } from "express";
 import { config } from "../config";
 import fs from "fs";
 import { botManager } from "../lib/BotManager";
+import { type FileInfo } from "../types";
 
 const messageIds: string[] = [];
 
@@ -14,8 +15,8 @@ const createTempDirectory = () => {
 	return tempFolderPath;
 };
 
-const uploadToDiscordHandler = async (path: string, fileName: string) => {
-	const discordRes = await botManager.sendAttachment(path, fileName);
+const uploadToDiscordHandler = async (path: string, fileInfo: FileInfo) => {
+	const discordRes = await botManager.sendAttachment(path, fileInfo);
 
 	if (!discordRes?.id) {
 		return;
@@ -53,6 +54,7 @@ export const uploadController = (req: Request, res: Response) => {
 
 	busboy.on("file", (_, file, fileInfo) => {
 		const fileName = fileInfo.filename;
+		const fileExtension = fileName.split(".").pop() || "";
 		totalBytesReceived = 0;
 
 		fileStream = fs.createWriteStream(
@@ -78,10 +80,11 @@ export const uploadController = (req: Request, res: Response) => {
 			fileStream.write(actualDataBytes);
 			fileStream.end();
 
-			await uploadToDiscordHandler(
-				`${tempFolderPath}/chunk-${fileIndex}.dzaj`,
-				fileName
-			);
+			await uploadToDiscordHandler(`${tempFolderPath}/chunk-${fileIndex}.dzaj`, {
+				fileName,
+				extension: fileExtension,
+				size: originalFileSize,
+			});
 
 			fileIndex++;
 			fileStream = fs.createWriteStream(
@@ -95,7 +98,7 @@ export const uploadController = (req: Request, res: Response) => {
 				((fileIndex * uploadBytesLimit + totalBytesReceived) / originalFileSize) *
 					100
 			);
-			console.log(progress);
+
 			sendProgressResponse(progress);
 		});
 
@@ -104,10 +107,11 @@ export const uploadController = (req: Request, res: Response) => {
 				fileStream.end();
 			}
 
-			await uploadToDiscordHandler(
-				`${tempFolderPath}/chunk-${fileIndex}.dzaj`,
-				fileName
-			);
+			await uploadToDiscordHandler(`${tempFolderPath}/chunk-${fileIndex}.dzaj`, {
+				fileName,
+				extension: fileExtension,
+				size: originalFileSize,
+			});
 
 			fs.rmSync(tempFolderPath, { recursive: true });
 
@@ -129,7 +133,7 @@ export const uploadController = (req: Request, res: Response) => {
 		});
 	});
 
-	req.on("close", () => {
+	req.on("close", async () => {
 		totalBytesReceived = 0;
 		if (fileStream) {
 			fileStream.close();
@@ -147,7 +151,15 @@ export const uploadController = (req: Request, res: Response) => {
 			}
 		}
 
-		// delete messages
+		for (const messageId of messageIds) {
+			try {
+				await botManager.deleteMessage(messageId);
+			} catch (error) {
+				console.error(`Error deleting message ${messageId}:`, error);
+			}
+		}
+
+		messageIds.length = 0;
 
 		busboy.removeAllListeners(); // Remove all event listeners to prevent memory leaks
 	});

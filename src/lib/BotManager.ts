@@ -1,6 +1,7 @@
 import { type Client, TextChannel } from "discord.js";
 import { client } from "../../bot/app";
 import { config } from "../config";
+import { type FileInfo } from "../types";
 
 // This class will manage all the bots in the server.
 class BotManager {
@@ -35,8 +36,6 @@ class BotManager {
 					client.channels.fetch(config.channelId).then((channel) => {
 						if (channel instanceof TextChannel) {
 							this.destinationChannel = channel;
-						} else {
-							//TODO: Handle the case when the channel is not a text channel.
 						}
 					});
 					isDestinationChannelSet = true;
@@ -47,21 +46,30 @@ class BotManager {
 	}
 
 	// Method to send attachments that have less than size defined in config. (25MB is default)
-	public async sendAttachment(filePath: string, fileName: string) {
-		// TODO: Implement attachment type.
+	public async sendAttachment(filePath: string, fileInfo: FileInfo) {
 		const { bot, id } = this.getAvailableBot(1);
 		const channel = this.destinationChannel;
 
 		if (!bot) {
-			//TODO: Handle the case when no bot is available.
 			return;
 		}
 		if (!channel) {
-			//TODO: Handle the case when no chat is available.
 			return;
 		}
 
-		const response = await channel.send({ content: fileName, files: [filePath] });
+		const formatToEmbed = (filed: string | number) => {
+			return `\`\`\`${filed}\`\`\``;
+		};
+
+		const content =
+			formatToEmbed(fileInfo.fileName) +
+			formatToEmbed(fileInfo.extension) +
+			formatToEmbed(fileInfo.size);
+
+		const response = await channel.send({
+			content,
+			files: [filePath],
+		});
 
 		this.occupiedSlots[id] -= 1;
 
@@ -69,7 +77,7 @@ class BotManager {
 	}
 
 	public async deleteMessage(messageId: string) {
-		const { bot } = this.getAvailableBot(0);
+		const { bot, id } = this.getAvailableBot(0);
 		const channel = this.destinationChannel;
 
 		if (!bot) {
@@ -87,6 +95,8 @@ class BotManager {
 		}
 
 		await message.delete();
+
+		this.occupiedSlots[id] -= 1;
 	}
 }
 
