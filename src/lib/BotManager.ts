@@ -67,6 +67,27 @@ class BotManager {
 
 		return response;
 	}
+
+	public async deleteMessage(messageId: string) {
+		const { bot } = this.getAvailableBot(0);
+		const channel = this.destinationChannel;
+
+		if (!bot) {
+			return;
+		}
+
+		if (!channel) {
+			return;
+		}
+
+		const message = await channel.messages.fetch(messageId);
+
+		if (!message) {
+			return;
+		}
+
+		await message.delete();
+	}
 }
 
 export const botManager = new BotManager();
