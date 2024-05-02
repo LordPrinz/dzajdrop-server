@@ -9,6 +9,7 @@ var os_1 = __importDefault(require("os"));
 var fs_1 = __importDefault(require("fs"));
 var drive = os_1.default.platform() === "win32" ? "D:" : "/";
 var getFreeSpace = function () {
+    console.error(os_1.default.platform());
     return new Promise(function (resolve, reject) {
         var command = "";
         if (os_1.default.platform() === "win32") {

@@ -5,6 +5,7 @@ import fs from "fs";
 const drive = os.platform() === "win32" ? "D:" : "/";
 
 export const getFreeSpace = (): Promise<number> => {
+	console.error(os.platform());
 	return new Promise((resolve, reject) => {
 		let command: string = "";
 		if (os.platform() === "win32") {
