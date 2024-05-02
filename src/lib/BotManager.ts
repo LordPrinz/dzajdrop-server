@@ -1,5 +1,5 @@
 import { type Client, TextChannel } from "discord.js";
-import { client } from "../../bot/app";
+import { client } from "../bot/app";
 import { config } from "../config";
 
 // This class will manage all the bots in the server.
