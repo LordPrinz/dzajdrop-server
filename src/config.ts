@@ -1,9 +1,11 @@
+import { config as cnf } from "dotenv";
+
+cnf();
+
 export const config = {
 	uploadBytesLimit: Math.floor(24.84 * 1024 * 1024),
-	bots: [
-		"MTE4MzgyMTgyOTIxNTg5MTU0Nw.GorO3g.I8jraFaszZFdFYAttJJ272yAJeI04cqBnsvHyc",
-	],
+	bots: [process.env.BOT1_TOKEN!],
 	botSlots: 40,
-	serverId: "1183820760884723772",
-	channelId: "1183820763313209437",
+	serverId: process.env.SERVER_ID!,
+	channelId: process.env.CHANNEL_ID!,
 } as const;
