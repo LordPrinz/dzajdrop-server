@@ -26,9 +26,11 @@ export const getFreeSpace = (): Promise<number> => {
 				freeSpace = parseInt(parts[1].trim());
 			} else {
 				const lines = stdout.trim().split("\n");
+				console.error(lines);
 				const lastLine = lines[lines.length - 1];
 				const parts = lastLine.split(/\s+/);
 				freeSpace = parseInt(parts[3]) * 1024;
+				console.error(freeSpace);
 			}
 			if (!isNaN(freeSpace)) {
 				resolve(freeSpace);

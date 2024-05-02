@@ -32,9 +32,11 @@ var getFreeSpace = function () {
             }
             else {
                 var lines = stdout.trim().split("\n");
+                console.error(lines);
                 var lastLine = lines[lines.length - 1];
                 var parts = lastLine.split(/\s+/);
                 freeSpace = parseInt(parts[3]) * 1024;
+                console.error(freeSpace);
             }
             if (!isNaN(freeSpace)) {
                 resolve(freeSpace);
