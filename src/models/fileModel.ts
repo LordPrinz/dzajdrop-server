@@ -15,6 +15,7 @@ const fileSchema = new mongoose.Schema(
 		secretKey: { type: String, required: true },
 		size: { type: Number, required: true },
 		messageIds: { type: [String], required: true },
+		downloads: { type: Number, default: 0 },
 	},
 	{
 		versionKey: false,
@@ -37,6 +38,11 @@ fileSchema.set("toObject", {
 		delete ret._id;
 	},
 });
+
+fileSchema.methods.incrementDownloads = async function () {
+	this.downloads += 1;
+	await this.save();
+};
 
 let FileModel: mongoose.Model<IFile>;
 
