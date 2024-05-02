@@ -60,10 +60,7 @@ class BotManager {
 			return `\`\`\`${filed}\`\`\``;
 		};
 
-		const content =
-			formatToEmbed(fileName) +
-			formatToEmbed(new Date().getTime().toLocaleString("pl-PL"));
-
+		const content = formatToEmbed(fileName);
 		const response = await channel.send({
 			content,
 			files: [filePath],

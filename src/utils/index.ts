@@ -1,5 +1,5 @@
 import { generateLink, generateRandom } from "./generate";
-import { findLink } from "./db";
+import { findLink, incrementDownloads } from "./db";
 import { getFreeSpace, calculateFileSize, createTempDirectory } from "./os";
 
 export {
@@ -9,4 +9,5 @@ export {
 	getFreeSpace,
 	calculateFileSize,
 	createTempDirectory,
+	incrementDownloads,
 };

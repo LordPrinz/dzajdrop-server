@@ -5,7 +5,9 @@ export interface IFile extends Document {
 	fileName: string;
 	secretKey: string;
 	size: number;
+	downloads: number;
 	messageIds: string[];
+	incrementDownloads: () => Promise<void>;
 }
 
 const fileSchema = new mongoose.Schema(

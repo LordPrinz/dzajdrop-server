@@ -1,4 +1,4 @@
-import FileModel from "../models/fileModel";
+import FileModel, { type IFile } from "../models/fileModel";
 import { generateLink } from "./generate";
 
 export const findLink = async (id: string) => {
@@ -24,4 +24,8 @@ export const generateUniqueID = async () => {
 
 		return id;
 	} while (true);
+};
+
+export const incrementDownloads = async (document: IFile) => {
+	await document.incrementDownloads();
 };

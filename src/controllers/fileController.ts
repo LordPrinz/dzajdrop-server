@@ -1,8 +1,7 @@
 import { Request, Response } from "express";
-import fs from "fs";
 import axios from "axios";
 
-import { findLink } from "../utils";
+import { findLink, incrementDownloads } from "../utils";
 import { botManager } from "../lib/BotManager";
 
 export const deleteFile = async (req: Request, res: Response) => {
@@ -42,6 +41,7 @@ export const getFileInfo = async (req: Request, res: Response) => {
 		id: file.id,
 		fileName: file.fileName,
 		size: file.size,
+		downloads: file.downloads,
 	});
 };
 
@@ -90,8 +90,10 @@ export const getFile = async (req: Request, res: Response) => {
 		streamingPromises.push(streamPromise);
 	}
 
+	await incrementDownloads(file);
+
 	Promise.all(streamingPromises)
-		.then(() => {
+		.then(async () => {
 			res.end();
 		})
 		.catch((err) => {

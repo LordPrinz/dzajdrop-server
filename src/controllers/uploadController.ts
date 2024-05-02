@@ -156,6 +156,7 @@ export const uploadController = async (req: Request, res: Response) => {
 				status: "success",
 				message: "Upload finished!",
 				fileId: response.id,
+				secretKey: response.secretKey,
 				progress: 100,
 			});
 
