@@ -7,6 +7,6 @@
 		"esModuleInterop": true,
 		"forceConsistentCasingInFileNames": true
 	},
-	"include": ["src/**/*"],
+	"include": ["src/**/*", "src/bot"],
 	"exclude": ["node_modules"]
 }

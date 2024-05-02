@@ -26,6 +26,10 @@ app.use(mongoSanitize());
 
 app.use(json());
 
+app.route("/api").get((_req, res) => {
+	return res.send("Bonżur");
+});
+
 app.use("/api/v1/upload", uploadRouter);
 app.use("/api/v1/files", filesRouter);
 

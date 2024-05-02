@@ -41,6 +41,9 @@ var limiter = express_rate_limit_1.default({
 app.use("/api", limiter);
 app.use(express_mongo_sanitize_1.default());
 app.use(express_1.json());
+app.route("/api").get(function (_req, res) {
+    return res.send("Bonżur");
+});
 app.use("/api/v1/upload", uploadRouter_1.default);
 app.use("/api/v1/files", filesRouter_1.default);
 app.use("*", function (req, res) {
