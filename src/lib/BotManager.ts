@@ -1,7 +1,6 @@
 import { type Client, TextChannel } from "discord.js";
 import { client } from "../../bot/app";
 import { config } from "../config";
-import { type FileInfo } from "../types";
 
 // This class will manage all the bots in the server.
 class BotManager {
@@ -46,7 +45,7 @@ class BotManager {
 	}
 
 	// Method to send attachments that have less than size defined in config. (25MB is default)
-	public async sendAttachment(filePath: string, fileInfo: FileInfo) {
+	public async sendAttachment(filePath: string, fileName: string) {
 		const { bot, id } = this.getAvailableBot(1);
 		const channel = this.destinationChannel;
 
@@ -62,9 +61,8 @@ class BotManager {
 		};
 
 		const content =
-			formatToEmbed(fileInfo.fileName) +
-			formatToEmbed(fileInfo.extension) +
-			formatToEmbed(new Date().getTime());
+			formatToEmbed(fileName) +
+			formatToEmbed(new Date().getTime().toLocaleString("pl-PL"));
 
 		const response = await channel.send({
 			content,

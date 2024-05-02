@@ -7,6 +7,8 @@ process.on("uncaughtException", (err) => {
 	process.exit(1);
 });
 
+//? Configuration of dotenv is in config.ts file
+
 const DB = process.env.DATABASE?.replace(
 	"<PASSWORD>",
 	process.env.DATABASE_PASSWORD || ""

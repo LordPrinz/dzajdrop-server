@@ -1,5 +1,6 @@
 import { exec } from "child_process";
 import os from "os";
+import fs from "fs";
 
 const drive = os.platform() === "win32" ? "D:" : "/";
 
@@ -35,4 +36,21 @@ export const getFreeSpace = (): Promise<number> => {
 			}
 		});
 	});
+};
+
+export const calculateFileSize = (path: string) => {
+	const stats = fs.statSync(path);
+
+	const fileSizeInBytes = stats.size;
+
+	return fileSizeInBytes;
+};
+
+export const createTempDirectory = () => {
+	const tempId = crypto.randomUUID();
+	const tempFolderPath = `./temp/${tempId}`;
+
+	fs.mkdirSync(tempFolderPath, { recursive: true });
+
+	return tempFolderPath;
 };

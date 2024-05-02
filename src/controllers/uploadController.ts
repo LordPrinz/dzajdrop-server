@@ -2,32 +2,21 @@ import { type Request, type Response } from "express";
 import { config } from "../config";
 import fs from "fs";
 import { botManager } from "../lib/BotManager";
-import { type FileInfo } from "../types";
+
 import { database } from "../lib/Database";
-import { getFreeSpace } from "../utils";
+import { calculateFileSize, createTempDirectory, getFreeSpace } from "../utils";
 
 const messageIds: string[] = [];
 let originalFileSize = 0;
 
-const calculateFileSize = (path: string) => {
-	const stats = fs.statSync(path);
-
-	const fileSizeInBytes = stats.size;
-
-	return fileSizeInBytes;
+const setHeaders = (res: Response) => {
+	res.setHeader("Content-Type", "text/event-stream");
+	res.setHeader("Cache-Control", "no-cache");
+	res.setHeader("Connection", "keep-alive");
 };
 
-const createTempDirectory = () => {
-	const tempId = crypto.randomUUID();
-	const tempFolderPath = `./temp/${tempId}`;
-
-	fs.mkdirSync(tempFolderPath, { recursive: true });
-
-	return tempFolderPath;
-};
-
-const uploadToDiscordHandler = async (path: string, fileInfo: FileInfo) => {
-	const discordRes = await botManager.sendAttachment(path, fileInfo);
+const uploadToDiscordHandler = async (path: string, fileName: string) => {
+	const discordRes = await botManager.sendAttachment(path, fileName);
 
 	if (!discordRes?.id) {
 		return;
@@ -56,9 +45,7 @@ export const uploadController = async (req: Request, res: Response) => {
 
 	const approximateFileSize = parseInt(req.headers["content-length"] || "0", 10);
 
-	res.setHeader("Content-Type", "text/event-stream");
-	res.setHeader("Cache-Control", "no-cache");
-	res.setHeader("Connection", "keep-alive");
+	setHeaders(res);
 
 	req.pipe(busboy);
 
@@ -68,14 +55,27 @@ export const uploadController = async (req: Request, res: Response) => {
 	let fileStream: fs.WriteStream | null = null;
 	let fileIndex = 0;
 
-	const sendProgressResponse = (progress: number) => {
-		res.write(`data: ${JSON.stringify({ progress })}\n\n`);
+	const calculateProgress = () => {
+		const progress = Math.ceil(
+			((fileIndex * uploadBytesLimit + totalBytesReceived) / approximateFileSize) *
+				100
+		);
+
+		return progress;
+	};
+
+	const streamResponse = (data: Object) => {
+		res.write(`data: ${JSON.stringify(data)}\n\n`);
+	};
+
+	const sendProgressResponse = () => {
+		const progress = calculateProgress();
+		streamResponse({ progress });
 	};
 
 	busboy.on("file", (_, file, fileInfo) => {
-		sendProgressResponse(0);
+		sendProgressResponse();
 		const fileName = fileInfo.filename;
-		const fileExtension = fileName.split(".").pop() || "";
 		totalBytesReceived = 0;
 
 		fileStream = fs.createWriteStream(
@@ -101,11 +101,10 @@ export const uploadController = async (req: Request, res: Response) => {
 			fileStream.write(actualDataBytes);
 			fileStream.end();
 
-			await uploadToDiscordHandler(`${tempFolderPath}/chunk-${fileIndex}.dzaj`, {
-				fileName,
-				extension: fileExtension,
-				size: originalFileSize,
-			});
+			await uploadToDiscordHandler(
+				`${tempFolderPath}/chunk-${fileIndex}.dzaj`,
+				fileName
+			);
 
 			fileIndex++;
 			fileStream = fs.createWriteStream(
@@ -115,13 +114,8 @@ export const uploadController = async (req: Request, res: Response) => {
 			totalBytesReceived = data.length - overflowBytes;
 
 			file.resume();
-			const progress = Math.floor(
-				((fileIndex * uploadBytesLimit + totalBytesReceived) /
-					approximateFileSize) *
-					100
-			);
 
-			sendProgressResponse(progress);
+			sendProgressResponse();
 		});
 
 		file.on("end", async () => {
@@ -129,11 +123,10 @@ export const uploadController = async (req: Request, res: Response) => {
 				fileStream.end();
 			}
 
-			await uploadToDiscordHandler(`${tempFolderPath}/chunk-${fileIndex}.dzaj`, {
-				fileName,
-				extension: fileExtension,
-				size: originalFileSize,
-			});
+			await uploadToDiscordHandler(
+				`${tempFolderPath}/chunk-${fileIndex}.dzaj`,
+				fileName
+			);
 
 			fs.rmSync(tempFolderPath, { recursive: true });
 
@@ -150,39 +143,28 @@ export const uploadController = async (req: Request, res: Response) => {
 			originalFileSize = 0;
 
 			if (!response) {
-				res.write(
-					"data: " +
-						JSON.stringify({
-							status: "fail",
-							message: "Something went wrong!",
-							progress: 0,
-						}) +
-						"\n\n"
-				);
+				streamResponse({
+					status: "fail",
+					message: "Something went wrong!",
+					progress: 0,
+				});
 
 				return res.end();
 			}
 
-			res.write(
-				"data: " +
-					JSON.stringify({
-						status: "success",
-						message: "Upload finished!",
-						fileId: response.id,
-						progress: 100,
-					}) +
-					"\n\n"
-			);
+			streamResponse({
+				status: "success",
+				message: "Upload finished!",
+				fileId: response.id,
+				progress: 100,
+			});
 
 			res.end();
 		});
 	});
 
 	req.on("close", async () => {
-		const progress = Math.ceil(
-			((fileIndex * uploadBytesLimit + totalBytesReceived) / approximateFileSize) *
-				100
-		);
+		const progress = calculateProgress();
 
 		if (progress === 100) {
 			return;
@@ -219,15 +201,11 @@ export const uploadController = async (req: Request, res: Response) => {
 		busboy.removeAllListeners();
 	});
 	busboy.on("error", (err) => {
-		res.write(
-			"data: " +
-				JSON.stringify({
-					status: "fail",
-					message: "Something went wrong!",
-					progress: 0,
-				}) +
-				"\n\n"
-		);
+		streamResponse({
+			status: "fail",
+			message: "Something went wrong!",
+			progress: 0,
+		});
 
 		res.end();
 		console.error(err);

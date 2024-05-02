@@ -81,8 +81,8 @@ export const getFile = async (req: Request, res: Response) => {
 		const response = await axios.get(cdnLink, { responseType: "stream" });
 
 		const streamPromise = new Promise((resolve, reject) => {
-			response.data.on("end", resolve); // Resolve the promise when streaming is complete
-			response.data.on("error", reject); // Reject the promise if an error occurs during streaming
+			response.data.on("end", resolve);
+			response.data.on("error", reject);
 		});
 
 		response.data.pipe(res, { end: false });
