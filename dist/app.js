@@ -30,6 +30,7 @@ var express_mongo_sanitize_1 = __importDefault(require("express-mongo-sanitize")
 var express_rate_limit_1 = __importDefault(require("express-rate-limit"));
 var cors_1 = __importDefault(require("cors"));
 var app = express_1.default();
+app.enable("trust proxy");
 app.use(cors_1.default());
 app.options("*", cors_1.default());
 app.use(helmet_1.default());
