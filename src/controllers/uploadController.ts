@@ -7,6 +7,15 @@ import { database } from "../lib/Database";
 import { getFreeSpace } from "../utils";
 
 const messageIds: string[] = [];
+let originalFileSize = 0;
+
+const calculateFileSize = (path: string) => {
+	const stats = fs.statSync(path);
+
+	const fileSizeInBytes = stats.size;
+
+	return fileSizeInBytes;
+};
 
 const createTempDirectory = () => {
 	const tempId = crypto.randomUUID();
@@ -24,6 +33,7 @@ const uploadToDiscordHandler = async (path: string, fileInfo: FileInfo) => {
 		return;
 	}
 
+	originalFileSize += calculateFileSize(path);
 	messageIds.push(discordRes.id);
 
 	fs.unlinkSync(path);
@@ -44,7 +54,7 @@ export const uploadController = async (req: Request, res: Response) => {
 		return res.status(400).send("No file provided");
 	}
 
-	const originalFileSize = parseInt(req.headers["content-length"] || "0", 10);
+	const approximateFileSize = parseInt(req.headers["content-length"] || "0", 10);
 
 	res.setHeader("Content-Type", "text/event-stream");
 	res.setHeader("Cache-Control", "no-cache");
@@ -106,7 +116,8 @@ export const uploadController = async (req: Request, res: Response) => {
 
 			file.resume();
 			const progress = Math.floor(
-				((fileIndex * uploadBytesLimit + totalBytesReceived) / originalFileSize) *
+				((fileIndex * uploadBytesLimit + totalBytesReceived) /
+					approximateFileSize) *
 					100
 			);
 
@@ -134,6 +145,10 @@ export const uploadController = async (req: Request, res: Response) => {
 				messageIds,
 			});
 
+			totalBytesReceived = 0;
+			messageIds.length = 0;
+			originalFileSize = 0;
+
 			if (!response) {
 				res.write(
 					"data: " +
@@ -148,14 +163,12 @@ export const uploadController = async (req: Request, res: Response) => {
 				return res.end();
 			}
 
-			totalBytesReceived = 0;
-			messageIds.length = 0;
-
 			res.write(
 				"data: " +
 					JSON.stringify({
 						status: "success",
 						message: "Upload finished!",
+						fileId: response.id,
 						progress: 100,
 					}) +
 					"\n\n"
@@ -167,7 +180,7 @@ export const uploadController = async (req: Request, res: Response) => {
 
 	req.on("close", async () => {
 		const progress = Math.ceil(
-			((fileIndex * uploadBytesLimit + totalBytesReceived) / originalFileSize) *
+			((fileIndex * uploadBytesLimit + totalBytesReceived) / approximateFileSize) *
 				100
 		);
 
@@ -201,6 +214,7 @@ export const uploadController = async (req: Request, res: Response) => {
 
 		totalBytesReceived = 0;
 		messageIds.length = 0;
+		originalFileSize = 0;
 
 		busboy.removeAllListeners();
 	});

@@ -78,8 +78,6 @@ export const getFile = async (req: Request, res: Response) => {
 			continue;
 		}
 
-		console.log(cdnLink);
-
 		const response = await axios.get(cdnLink, { responseType: "stream" });
 
 		const streamPromise = new Promise((resolve, reject) => {
