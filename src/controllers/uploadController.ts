@@ -6,36 +6,38 @@ import { botManager } from "../lib/BotManager";
 import { database } from "../lib/Database";
 import { calculateFileSize, createTempDirectory, getFreeSpace } from "../utils";
 
-const messageIds: string[] = [];
-let originalFileSize = 0;
-
 const setHeaders = (res: Response) => {
 	res.setHeader("Content-Type", "text/event-stream");
 	res.setHeader("Cache-Control", "no-cache");
 	res.setHeader("Connection", "keep-alive");
 };
 
-const uploadToDiscordHandler = async (path: string, fileName: string) => {
-	const discordRes = await botManager.sendAttachment(path, fileName);
-
-	if (!discordRes?.id) {
-		return;
-	}
-
-	originalFileSize += calculateFileSize(path);
-	messageIds.push(discordRes.id);
-
-	fs.unlinkSync(path);
-};
-
 export const uploadController = async (req: Request, res: Response) => {
+	const messageIds: string[] = [];
+	let originalFileSize = 0;
+
+	const uploadToDiscordHandler = async (path: string, fileName: string) => {
+		const discordRes = await botManager.sendAttachment(path, fileName);
+
+		if (!discordRes?.id) {
+			return;
+		}
+
+		originalFileSize += calculateFileSize(path);
+		messageIds.push(discordRes.id);
+
+		fs.unlinkSync(path);
+	};
+
 	const { uploadBytesLimit } = config;
 
-	const freeSpace = await getFreeSpace();
+	//? Uncomment this if you want to limit the storage space
 
-	if (freeSpace - uploadBytesLimit <= uploadBytesLimit) {
-		return res.status(413).send("Insufficient storage space");
-	}
+	// const freeSpace = await getFreeSpace();
+
+	// if (freeSpace - uploadBytesLimit <= uploadBytesLimit) {
+	// 	return res.status(413).send("Insufficient storage space");
+	// }
 
 	const { busboy } = req;
 
