@@ -1,27 +1,8 @@
-import FileModel from "../models/fileModel";
-import { type FileInfo } from "../types/uploadFile";
-import { generateUniqueID } from "../utils/db";
+import { SaveFileParams, saveFile } from "../db";
 
 class Database {
-	public async saveFile({
-		fileName,
-		size,
-		messageIds,
-	}: Omit<FileInfo, "extension"> & { messageIds: string[] }) {
-		const uniqueId = await generateUniqueID();
-		const secretKey = crypto.randomUUID();
-
-		const objectToSave = {
-			_id: uniqueId,
-			fileName,
-			secretKey,
-			size,
-			messageIds,
-		};
-
-		const res = await FileModel.create(objectToSave);
-
-		return res;
+	public async saveFile(params: SaveFileParams) {
+		return await saveFile(params);
 	}
 }
 

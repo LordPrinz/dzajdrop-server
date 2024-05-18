@@ -132,8 +132,6 @@ export const uploadController = async (req: Request, res: Response) => {
 
 			fs.rmSync(tempFolderPath, { recursive: true });
 
-			// Save to mongo database
-
 			const response = await database.saveFile({
 				fileName,
 				size: originalFileSize,
