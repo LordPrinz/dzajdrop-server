@@ -4,7 +4,13 @@ import fs from "fs";
 import { botManager } from "../lib/BotManager";
 
 import { database } from "../lib/Database";
-import { calculateFileSize, createTempDirectory, getFreeSpace } from "../utils";
+import {
+	calculateFileSize,
+	createTempDirectory,
+	getFreeSpace,
+	sendResponse,
+	streamResponse,
+} from "../utils";
 
 const setHeaders = (res: Response) => {
 	res.setHeader("Content-Type", "text/event-stream");
@@ -18,13 +24,13 @@ export const uploadController = async (req: Request, res: Response) => {
 	const freeSpace = await getFreeSpace();
 
 	if (freeSpace - uploadBytesLimit <= uploadBytesLimit) {
-		return res.status(413).send("Insufficient storage space");
+		return sendResponse(res, { status: 413, data: "Insufficient storage space" });
 	}
 
 	const { busboy } = req;
 
 	if (!busboy) {
-		return res.status(400).send("No file provided");
+		return sendResponse(res, { status: 400, data: "No file provided" });
 	}
 
 	const messageIds: string[] = [];
@@ -64,13 +70,9 @@ export const uploadController = async (req: Request, res: Response) => {
 		return progress;
 	};
 
-	const streamResponse = (data: Object) => {
-		res.write(`data: ${JSON.stringify(data)}\n\n`);
-	};
-
 	const sendProgressResponse = () => {
 		const progress = calculateProgress();
-		streamResponse({ progress });
+		streamResponse(res, { progress });
 	};
 
 	busboy.on("file", (_, file, fileInfo) => {
@@ -143,7 +145,7 @@ export const uploadController = async (req: Request, res: Response) => {
 			originalFileSize = 0;
 
 			if (!response) {
-				streamResponse({
+				streamResponse(res, {
 					status: "fail",
 					message: "Something went wrong!",
 					progress: 0,
@@ -152,7 +154,7 @@ export const uploadController = async (req: Request, res: Response) => {
 				return res.end();
 			}
 
-			streamResponse({
+			streamResponse(res, {
 				status: "success",
 				message: "Upload finished!",
 				fileId: response.id,
@@ -202,7 +204,7 @@ export const uploadController = async (req: Request, res: Response) => {
 		busboy.removeAllListeners();
 	});
 	busboy.on("error", (err) => {
-		streamResponse({
+		streamResponse(res, {
 			status: "fail",
 			message: "Something went wrong!",
 			progress: 0,
