@@ -6,26 +6,10 @@ import { botManager } from "../lib/BotManager";
 import { database } from "../lib/Database";
 import { calculateFileSize, createTempDirectory, getFreeSpace } from "../utils";
 
-const messageIds: string[] = [];
-let originalFileSize = 0;
-
 const setHeaders = (res: Response) => {
 	res.setHeader("Content-Type", "text/event-stream");
 	res.setHeader("Cache-Control", "no-cache");
 	res.setHeader("Connection", "keep-alive");
-};
-
-const uploadToDiscordHandler = async (path: string, fileName: string) => {
-	const discordRes = await botManager.sendAttachment(path, fileName);
-
-	if (!discordRes?.id) {
-		return;
-	}
-
-	originalFileSize += calculateFileSize(path);
-	messageIds.push(discordRes.id);
-
-	fs.unlinkSync(path);
 };
 
 export const uploadController = async (req: Request, res: Response) => {
@@ -42,6 +26,22 @@ export const uploadController = async (req: Request, res: Response) => {
 	if (!busboy) {
 		return res.status(400).send("No file provided");
 	}
+
+	const messageIds: string[] = [];
+	let originalFileSize = 0;
+
+	const uploadToDiscordHandler = async (path: string, fileName: string) => {
+		const discordRes = await botManager.sendAttachment(path, fileName);
+
+		if (!discordRes?.id) {
+			return;
+		}
+
+		originalFileSize += calculateFileSize(path);
+		messageIds.push(discordRes.id);
+
+		fs.unlinkSync(path);
+	};
 
 	const approximateFileSize = parseInt(req.headers["content-length"] || "0", 10);
 
