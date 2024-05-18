@@ -35,7 +35,7 @@ export const uploadController = async (req: Request, res: Response) => {
 
 	const avaliableBot = botManager.getAvailableBot(0);
 
-	if (avaliableBot.slots <= 0) {
+	if (avaliableBot.slots < 0) {
 		return sendResponse(res, {
 			status: 503,
 			data: "Failed to upload file due to high traffic. Please try again later.",

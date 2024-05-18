@@ -1,6 +1,6 @@
 import { type Client, TextChannel } from "discord.js";
-import { client } from "../bot/app";
 import { config } from "../config";
+import { createNewBotInstance } from "../bot/app";
 
 // This class will manage all the bots in the server.
 class BotManager {
@@ -9,19 +9,30 @@ class BotManager {
 
 	private destinationChannel: TextChannel | null = null;
 
-	// This method will return the first available bot that has enough slots.
 	public getAvailableBot(requiredSlots: number = 1) {
+		let availableBotIndex = -1;
+
 		for (let i = 0; i < this.bots.length; i++) {
-			if (this.occupiedSlots[i] + requiredSlots <= config.botSlots) {
-				this.occupiedSlots[i] += requiredSlots;
-				return {
-					bot: this.bots[i],
-					id: i,
-					slots: config.botSlots - this.occupiedSlots[i] - requiredSlots,
-				};
+			if (
+				this.occupiedSlots[i] < config.botSlots &&
+				this.occupiedSlots[i] + requiredSlots <= config.botSlots
+			) {
+				availableBotIndex = i;
+				break;
 			}
 		}
-		return { bot: null, id: -1, slots: -1 };
+
+		if (availableBotIndex === -1) {
+			return { bot: null, id: -1, slots: -1 };
+		}
+
+		this.occupiedSlots[availableBotIndex] += requiredSlots;
+
+		return {
+			bot: this.bots[availableBotIndex],
+			id: availableBotIndex,
+			slots: config.botSlots - this.occupiedSlots[availableBotIndex],
+		};
 	}
 
 	constructor() {
@@ -30,6 +41,7 @@ class BotManager {
 		let isDestinationChannelSet = false;
 
 		for (const botToken of botTokens) {
+			const client = createNewBotInstance(botToken);
 			// Save bot instances to bots array.
 			client.login(botToken).then(() => {
 				this.bots.push(client);
