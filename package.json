@@ -4,16 +4,12 @@
 	"description": "Dzjadrop main server",
 	"main": "src/server.ts",
 	"scripts": {
-		"start": "nodemon src/server.ts",
+		"start": "ts-node src/server.ts",
+		"dev": "nodemon src/server.ts",
 		"build": "rimraf dist && tsc",
 		"ts.check": "tsc --project tsconfig.json",
 		"add-build": "git add dist"
 	},
-	"pre-commit": [
-		"ts.check",
-		"build",
-		"add-build"
-	],
 	"dependencies": {
 		"axios": "^1.6.8",
 		"busboy": "^1.6.0",

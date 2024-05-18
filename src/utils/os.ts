@@ -5,7 +5,6 @@ import fs from "fs";
 const drive = os.platform() === "win32" ? "D:" : "/";
 
 export const getFreeSpace = (): Promise<number> => {
-	console.error(os.platform());
 	return new Promise((resolve, reject) => {
 		let command: string = "";
 		if (os.platform() === "win32") {
@@ -26,7 +25,6 @@ export const getFreeSpace = (): Promise<number> => {
 				freeSpace = parseInt(parts[1].trim());
 			} else {
 				const lines = stdout.trim().split("\n");
-				console.error(lines);
 				const lastLine = lines[lines.length - 1];
 				const parts = lastLine.split(/\s+/);
 				freeSpace = parseInt(parts[3]) * 1024;

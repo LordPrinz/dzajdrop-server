@@ -46,7 +46,7 @@ export const getFileInfo = async (req: Request, res: Response) => {
 };
 
 function sanitizeFilename(filename: string) {
-	return filename.replace(/[^a-zA-Z0-9.\-_]/g, "_"); // Replace any invalid characters with underscores
+	return filename.replace(/[^a-zA-Z0-9.\-_]/g, "_");
 }
 
 export const getFile = async (req: Request, res: Response) => {

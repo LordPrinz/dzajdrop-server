@@ -1,5 +1,3 @@
-import { randomBytes } from "crypto";
-
 export const generateRandom = (min: number, max: number): number => {
 	min = Math.ceil(min);
 	max = Math.floor(max);
