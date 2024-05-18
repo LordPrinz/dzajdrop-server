@@ -10,14 +10,18 @@ class BotManager {
 	private destinationChannel: TextChannel | null = null;
 
 	// This method will return the first available bot that has enough slots.
-	private getAvailableBot(requiredSlots: number = 1) {
+	public getAvailableBot(requiredSlots: number = 1) {
 		for (let i = 0; i < this.bots.length; i++) {
 			if (this.occupiedSlots[i] + requiredSlots <= config.botSlots) {
 				this.occupiedSlots[i] += requiredSlots;
-				return { bot: this.bots[i], id: i };
+				return {
+					bot: this.bots[i],
+					id: i,
+					slots: config.botSlots - this.occupiedSlots[i] - requiredSlots,
+				};
 			}
 		}
-		return { bot: null, id: -1 };
+		return { bot: null, id: -1, slots: -1 };
 	}
 
 	constructor() {
@@ -50,10 +54,10 @@ class BotManager {
 		const channel = this.destinationChannel;
 
 		if (!bot) {
-			return;
+			return null;
 		}
 		if (!channel) {
-			return;
+			return null;
 		}
 
 		const formatToEmbed = (filed: string | number) => {

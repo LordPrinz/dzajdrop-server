@@ -35,6 +35,8 @@ const server = app.listen(port, () => {
 process.on("unhandledRejection", (err) => {
 	console.log("UNHANDLED REJECTION! Shutting down...");
 	console.log((err as any).name, (err as any).message);
+	// Delete empty directoreis from temp
+
 	server.close(() => {
 		process.exit(1);
 	});
