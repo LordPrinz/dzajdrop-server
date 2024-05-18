@@ -1,8 +1,9 @@
 import { Request, Response } from "express";
 import axios from "axios";
 
-import { findLink, incrementDownloads, sendResponse } from "../utils";
+import { sendResponse } from "../utils";
 import { botManager } from "../lib/BotManager";
+import { findLink, incrementDownloads } from "../db";
 
 export const deleteFile = async (req: Request, res: Response) => {
 	const fileId = req.params.id;

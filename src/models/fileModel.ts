@@ -1,6 +1,6 @@
-import mongoose, { type Document } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
-export interface IFile extends Document {
+type File = {
 	_id: string;
 	fileName: string;
 	secretKey: string;
@@ -8,9 +8,11 @@ export interface IFile extends Document {
 	downloads: number;
 	messageIds: string[];
 	incrementDownloads: () => Promise<void>;
-}
+};
 
-const fileSchema = new mongoose.Schema(
+export type FileData = Omit<File, "_id"> & { id: string };
+
+const fileSchema = new Schema<File>(
 	{
 		_id: { type: String, required: true },
 		fileName: { type: String, required: true },
@@ -46,12 +48,12 @@ fileSchema.methods.incrementDownloads = async function () {
 	await this.save();
 };
 
-let FileModel: mongoose.Model<IFile>;
+let FileModel: mongoose.Model<File>;
 
 try {
-	FileModel = mongoose.model<IFile>("files");
+	FileModel = mongoose.model<File>("files");
 } catch {
-	FileModel = mongoose.model<IFile>("files", fileSchema);
+	FileModel = mongoose.model<File>("files", fileSchema);
 }
 
 export default FileModel;

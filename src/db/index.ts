@@ -1,3 +1,15 @@
-import { saveFile, type SaveFileParams } from "./file";
+import {
+	saveFile,
+	type SaveFileParams,
+	findLink,
+	generateUniqueID,
+	incrementDownloads,
+} from "./file";
 
-export { saveFile, type SaveFileParams };
+export {
+	saveFile,
+	type SaveFileParams,
+	generateUniqueID,
+	findLink,
+	incrementDownloads,
+};
