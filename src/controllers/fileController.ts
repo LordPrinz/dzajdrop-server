@@ -69,35 +69,32 @@ export const getFile = async (req: Request, res: Response) => {
 	);
 	res.setHeader("Content-Length", file.size);
 
-	const streamingPromises: Promise<unknown>[] = [];
-
 	for (const messageId of messageIds) {
-		const cdnLink = await botManager.getAttachment(messageId);
+		try {
+			const cdnLink = await botManager.getAttachment(messageId);
 
-		if (!cdnLink) {
-			continue;
+			if (!cdnLink) {
+				continue;
+			}
+
+			const response = await axios.get(cdnLink, { responseType: "stream" });
+
+			await new Promise((resolve, reject) => {
+				response.data.on("end", resolve);
+				response.data.on("error", reject);
+				response.data.pipe(res, { end: false });
+			});
+		} catch (err) {
+			console.error(`Error streaming chunk ${messageId}:`, err);
+			return res.status(500).end();
 		}
-
-		const response = await axios.get(cdnLink, { responseType: "stream" });
-
-		const streamPromise = new Promise((resolve, reject) => {
-			response.data.on("end", resolve);
-			response.data.on("error", reject);
-		});
-
-		response.data.pipe(res, { end: false });
-
-		streamingPromises.push(streamPromise);
 	}
 
-	await incrementDownloads(file);
-
-	Promise.all(streamingPromises)
-		.then(async () => {
-			res.end();
-		})
-		.catch((err) => {
-			console.error("Error streaming data:", err);
-			res.status(500).end();
-		});
+	try {
+		await incrementDownloads(file);
+		res.end();
+	} catch (err) {
+		console.error("Error incrementing downloads:", err);
+		res.status(500).end();
+	}
 };
