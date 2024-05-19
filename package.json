@@ -2,9 +2,9 @@
 	"name": "dzajdrop-server",
 	"version": "1.0.0",
 	"description": "Dzjadrop main server",
-	"main": "src/server.ts",
+	"main": "dist/server.js",
 	"scripts": {
-		"start": "ts-node src/server.ts",
+		"start": "node dist/server.js",
 		"dev": "nodemon src/server.ts",
 		"build": "rimraf dist && tsc",
 		"ts.check": "tsc --project tsconfig.json",
@@ -23,7 +23,13 @@
 		"helmet": "^7.1.0",
 		"mongoose": "^8.3.3",
 		"pre-commit": "^1.2.2",
-		"rimraf": "^5.0.5"
+		"rimraf": "^5.0.7"
+	},
+	"engines": {
+		"node": "20.x"
+	},
+	"repository": {
+		"url": "https://github.com/LordPrinz/dzajdrop-server"
 	},
 	"devDependencies": {
 		"@types/busboy": "^1.5.3",
