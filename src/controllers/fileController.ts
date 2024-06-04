@@ -77,39 +77,51 @@ export const getFile = async (req: Request, res: Response) => {
 
 	const sanitizedFilename = sanitizeFilename(file.fileName);
 
-	res.setHeader("Content-Type", "application/octet-stream");
-	res.setHeader(
-		"Content-Disposition",
-		`attachment; filename="${sanitizedFilename}"`
+	// * This is the version of the code that returns cdn chunks
+
+	const cdnLinks = await Promise.all(
+		messageIds.map((messageId) => botManager.getAttachment(messageId))
 	);
-	res.setHeader("Content-Length", file.size);
 
-	for (const messageId of messageIds) {
-		try {
-			const cdnLink = await botManager.getAttachment(messageId);
+	return sendResponse(res, {
+		data: { cdnLinks, fileName: sanitizedFilename, size: file.size },
+	});
 
-			if (!cdnLink) {
-				continue;
-			}
+	//* This is the version of the code that streams the file from the CDN
 
-			const response = await axios.get(cdnLink, { responseType: "stream" });
+	// res.setHeader("Content-Type", "application/octet-stream");
+	// res.setHeader(
+	// 	"Content-Disposition",
+	// 	`attachment; filename="${sanitizedFilename}"`
+	// );
+	// res.setHeader("Content-Length", file.size);
 
-			await new Promise((resolve, reject) => {
-				response.data.on("end", resolve);
-				response.data.on("error", reject);
-				response.data.pipe(res, { end: false });
-			});
-		} catch (err) {
-			console.error(`Error streaming chunk ${messageId}:`, err);
-			return res.status(500).end();
-		}
-	}
+	// for (const messageId of messageIds) {
+	// 	try {
+	// 		const cdnLink = await botManager.getAttachment(messageId);
 
-	try {
-		await incrementDownloads(file);
-		res.end();
-	} catch (err) {
-		console.error("Error incrementing downloads:", err);
-		res.status(500).end();
-	}
+	// 		if (!cdnLink) {
+	// 			continue;
+	// 		}
+
+	// 		const response = await axios.get(cdnLink, { responseType: "stream" });
+
+	// 		await new Promise((resolve, reject) => {
+	// 			response.data.on("end", resolve);
+	// 			response.data.on("error", reject);
+	// 			response.data.pipe(res, { end: false });
+	// 		});
+	// 	} catch (err) {
+	// 		console.error(`Error streaming chunk ${messageId}:`, err);
+	// 		return res.status(500).end();
+	// 	}
+	// }
+
+	// try {
+	// 	await incrementDownloads(file);
+	// 	res.end();
+	// } catch (err) {
+	// 	console.error("Error incrementing downloads:", err);
+	// 	res.status(500).end();
+	// }
 };
