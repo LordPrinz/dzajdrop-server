@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import axios from "axios";
+// import axios from "axios";
 
 import { sendResponse } from "../utils";
 import { botManager } from "../lib/BotManager";
@@ -82,6 +82,8 @@ export const getFile = async (req: Request, res: Response) => {
 	const cdnLinks = await Promise.all(
 		messageIds.map((messageId) => botManager.getAttachment(messageId))
 	);
+
+	await incrementDownloads(file);
 
 	return sendResponse(res, {
 		data: { cdnLinks, fileName: sanitizedFilename, size: file.size },
