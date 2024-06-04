@@ -35,12 +35,9 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getFile = exports.getFileInfo = exports.deleteFile = void 0;
-var axios_1 = __importDefault(require("axios"));
+// import axios from "axios";
 var utils_1 = require("../utils");
 var BotManager_1 = require("../lib/BotManager");
 var db_1 = require("../db");
@@ -109,7 +106,7 @@ function sanitizeFilename(filename) {
     return filename.replace(/[^a-zA-Z0-9.\-_]/g, "_");
 }
 var getFile = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var fileId, file, messageIds, sanitizedFilename, _loop_1, _i, messageIds_1, messageId, state_1, err_1;
+    var fileId, file, messageIds, sanitizedFilename, cdnLinks;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -125,67 +122,15 @@ var getFile = function (req, res) { return __awaiter(void 0, void 0, void 0, fun
                 }
                 messageIds = file.messageIds;
                 sanitizedFilename = sanitizeFilename(file.fileName);
-                res.setHeader("Content-Type", "application/octet-stream");
-                res.setHeader("Content-Disposition", "attachment; filename=\"" + sanitizedFilename + "\"");
-                res.setHeader("Content-Length", file.size);
-                _loop_1 = function (messageId) {
-                    var cdnLink, response_1, err_2;
-                    return __generator(this, function (_b) {
-                        switch (_b.label) {
-                            case 0:
-                                _b.trys.push([0, 4, , 5]);
-                                return [4 /*yield*/, BotManager_1.botManager.getAttachment(messageId)];
-                            case 1:
-                                cdnLink = _b.sent();
-                                if (!cdnLink) {
-                                    return [2 /*return*/, "continue"];
-                                }
-                                return [4 /*yield*/, axios_1.default.get(cdnLink, { responseType: "stream" })];
-                            case 2:
-                                response_1 = _b.sent();
-                                return [4 /*yield*/, new Promise(function (resolve, reject) {
-                                        response_1.data.on("end", resolve);
-                                        response_1.data.on("error", reject);
-                                        response_1.data.pipe(res, { end: false });
-                                    })];
-                            case 3:
-                                _b.sent();
-                                return [3 /*break*/, 5];
-                            case 4:
-                                err_2 = _b.sent();
-                                console.error("Error streaming chunk " + messageId + ":", err_2);
-                                return [2 /*return*/, { value: res.status(500).end() }];
-                            case 5: return [2 /*return*/];
-                        }
-                    });
-                };
-                _i = 0, messageIds_1 = messageIds;
-                _a.label = 2;
+                return [4 /*yield*/, Promise.all(messageIds.map(function (messageId) { return BotManager_1.botManager.getAttachment(messageId); }))];
             case 2:
-                if (!(_i < messageIds_1.length)) return [3 /*break*/, 5];
-                messageId = messageIds_1[_i];
-                return [5 /*yield**/, _loop_1(messageId)];
-            case 3:
-                state_1 = _a.sent();
-                if (typeof state_1 === "object")
-                    return [2 /*return*/, state_1.value];
-                _a.label = 4;
-            case 4:
-                _i++;
-                return [3 /*break*/, 2];
-            case 5:
-                _a.trys.push([5, 7, , 8]);
+                cdnLinks = _a.sent();
                 return [4 /*yield*/, db_1.incrementDownloads(file)];
-            case 6:
+            case 3:
                 _a.sent();
-                res.end();
-                return [3 /*break*/, 8];
-            case 7:
-                err_1 = _a.sent();
-                console.error("Error incrementing downloads:", err_1);
-                res.status(500).end();
-                return [3 /*break*/, 8];
-            case 8: return [2 /*return*/];
+                return [2 /*return*/, utils_1.sendResponse(res, {
+                        data: { cdnLinks: cdnLinks, fileName: sanitizedFilename, size: file.size },
+                    })];
         }
     });
 }); };
